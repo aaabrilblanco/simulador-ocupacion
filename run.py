@@ -15,7 +15,7 @@ model = HospitalModel(
 
 # Simular desde las 08:00 hasta las 21:00
 for i in range(14):
-    print(f"\n🕒 Hora: {model.current_hour}:00")
+    print(f"\n Hora: {model.current_hour}:00")
     model.step()
     for agent in model.schedule.agents:
         print(f"{agent.__class__.__name__} {agent.unique_id} está en {agent.pos}")

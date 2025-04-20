@@ -1,14 +1,9 @@
-# model.py - Simulador de una planta del Hospital Ruber Juan Bravo
-
 from mesa import Model
 from mesa.space import MultiGrid
 from mesa.time import SimultaneousActivation
 from agents import BaseAgente, Paciente, Medico, Enfermero, PersonalLimpieza, Recepcionista, Zona
 import random
 from mesa.datacollection import DataCollector
-
-
-# model_hospital.py
 
 class HospitalModel(Model):
     def __init__(self, width=6, height=6, num_pacientes=5, num_medicos=2, num_enfermeros=2, num_limpieza=1, num_recepcionistas=1):
@@ -18,7 +13,7 @@ class HospitalModel(Model):
         self.current_hour = 8
         self.pacientes_atendidos = 0
 
-        # Referencias a zonas específicas del hospital (puedes cambiarlas si tus coords cambian)
+        # Referencias a zonas específicas del hospital 
         self.entrada = (0, 3)
         self.recepcion = (1, 3)
         self.espera = (2, 2)
@@ -89,8 +84,6 @@ class HospitalModel(Model):
         self.datacollector.collect(self)
 
 
-
-    
 #Para recogida de datos
 
 def get_pacientes_atendidos(model):
