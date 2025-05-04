@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #grid {
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{title}}</h1>
+    <div id="grid"></div>
+    <script src="{{ url_for('static', filename='js/simplegrid.js') }}"></script>
+</body>
+</html>

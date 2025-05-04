@@ -1,99 +1,75 @@
-# agents.py
-
 from mesa import Agent
 import random
 
-
-class BaseAgente(Agent):
-    def __init__(self, unique_id, model, pos):
+class PacienteAgent(Agent):
+    def __init__(self, unique_id, model, planta, destino):
         super().__init__(unique_id, model)
-        self.pos = pos
-        self.next_pos = None  # ← NUEVO: para guardar la posición futura
+        self.planta = planta
+        self.destino = destino
 
     def step(self):
-        self.decidir_destino()
+        possible_moves = self.model.grid.get_neighborhood(
+            self.pos,
+            moore=False,
+            include_center=False
+        )
 
-    def advance(self):
-        if self.next_pos is not None:
-            self.model.grid.move_agent(self, self.next_pos)
-            self.pos = self.next_pos
-            self.next_pos = None
+        valid_moves = [
+            pos for pos in possible_moves
+            if self.model.es_celda_valida(pos, self.planta)
+        ]
 
-    def decidir_destino(self):
-        pass  # ← Las subclases lo implementarán
+        if valid_moves:
+            # Libera la celda anterior
+            self.model.ocupadas.discard((self.pos, self.planta))
 
-    def movimiento_hacia(self, destino):
-        x, y = self.pos
-        dx = 1 if destino[0] > x else -1 if destino[0] < x else 0
-        dy = 1 if destino[1] > y else -1 if destino[1] < y else 0
-        return (x + dx, y + dy)
+            new_position = random.choice(valid_moves)
+            self.model.grid.move_agent(self, new_position)
 
-class Paciente(BaseAgente):
-    def __init__(self, unique_id, model, pos):
-        super().__init__(unique_id, model, pos)
-        self.estado = "entrada"
-
-    def decidir_destino(self):
-        if self.estado == "entrada":
-            destino = self.model.espera
-            if self.pos == destino:
-                self.estado = "espera"
-            else:
-                self.next_pos = self.movimiento_hacia(destino)
-        elif self.estado == "espera":
-            # Selecciona una consulta disponible
-            consultas = [pos for pos, data in self.model.zonas.items() if data["tipo"] == "consulta"]
-            if consultas:
-                destino = random.choice(consultas)
-                if self.pos == destino:
-                    self.estado = "consulta"
-                else:
-                    self.next_pos = self.movimiento_hacia(destino)
-        elif self.estado == "consulta":
-            destino = self.model.entrada
-            if self.pos == destino:
-                self.estado = "salida"
-                self.model.pacientes_atendidos += 1
-            else:
-                self.next_pos = self.movimiento_hacia(destino)
+            # Marca la nueva posición como ocupada
+            self.model.ocupadas.add((new_position, self.planta))
+    
+    def render(self):
+        return {
+            "Shape": "circle",
+            "Color": "green",
+            "r": 0.5,
+            "Layer": 3,
+            "text": "P",
+            "text_color": "white"
+        }
 
 
-class Medico(BaseAgente):
-    def decidir_destino(self):
-        consultas = [pos for pos, data in self.model.zonas.items() if data["tipo"] == "consulta"]
-        if consultas:
-            destino = random.choice(consultas)
-            self.next_pos = self.movimiento_hacia(destino)
-
-
-class Enfermero(BaseAgente):
-    def decidir_destino(self):
-        vecinos = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
-        libres = [pos for pos in vecinos if self.model.grid.is_cell_empty(pos)]
-        if libres:
-            self.next_pos = random.choice(libres)
-
-
-class PersonalLimpieza(BaseAgente):
-    def decidir_destino(self):
-        if self.model.current_hour in range(16, 21):
-            destino = random.choice(list(self.model.zonas.keys()))
-        else:
-            destino = self.model.sala_tecnica
-        self.next_pos = self.movimiento_hacia(destino)
-
-
-
-
-class Recepcionista(BaseAgente):
-    def decidir_destino(self):
-        self.next_pos = self.model.recepcion  # siempre vuelve a su puesto
-
-
-
-class Zona(Agent):
-    def __init__(self, unique_id, model, tipo):
+class MedicoAgent(Agent):
+    def __init__(self, unique_id, model, planta):
         super().__init__(unique_id, model)
-        self.tipo = tipo
+        self.planta = planta
 
+    def step(self):
+        possible_moves = self.model.grid.get_neighborhood(
+            self.pos,
+            moore=False,
+            include_center=False
+        )
 
+        valid_moves = [
+            pos for pos in possible_moves
+            if self.model.es_celda_valida(pos, self.planta)
+        ]
+
+        if valid_moves:
+            self.model.ocupadas.discard((self.pos, self.planta))
+
+            new_position = random.choice(valid_moves)
+            self.model.grid.move_agent(self, new_position)
+
+            self.model.ocupadas.add((new_position, self.planta))
+    def render(self):
+        return {
+            "Shape": "circle",
+            "Color": "blue",
+            "r": 0.5,
+            "Layer": 3,
+            "text": "M",
+            "text_color": "black"
+        }
